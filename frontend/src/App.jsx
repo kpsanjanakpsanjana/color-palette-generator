@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import "./App.css";
 import html2canvas from "html2canvas";
 
@@ -8,6 +8,10 @@ function App() {
   const [preview, setPreview] = useState(null);
   const [colors, setColors] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const [count, setCount] = useState(5);
+  const [paletteName, setPaletteName] = useState("");
+  const [savedPalettes, setSavedPalettes] = useState([]);
 
   const paletteRef = useRef();
 
@@ -22,12 +26,27 @@ function App() {
 
   const handleImage = (e) => {
     const file = e.target.files[0];
-    setImage(file);
 
     if (file) {
+      setImage(file);
       setPreview(URL.createObjectURL(file));
     }
   };
+
+const handleDrop = (e) => {
+  e.preventDefault(); 
+
+  const file = e.dataTransfer.files[0];
+
+  if (file) {
+    setImage(file);
+    setPreview(URL.createObjectURL(file));
+  }
+};
+
+const handleDragOver = (e) => {
+  e.preventDefault();
+};
 
   const uploadImage = async () => {
 
@@ -81,7 +100,20 @@ function App() {
 
       <h1>🎨 Color Palette Generator</h1>
 
-      <input type="file" accept="image/*" onChange={handleImage} />
+      <div
+      className="dropZone"
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
+      >
+
+        <p>Drag & Drop Image OR Click</p>
+
+        <input
+        type="file"
+        accept="image/*"
+        onChange={handleImage}
+        />
+        </div>
 
       <div className="buttons">
         <button onClick={uploadImage} disabled={loading}>

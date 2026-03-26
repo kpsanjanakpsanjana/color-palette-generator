@@ -69,3 +69,10 @@ button:hover{
   transform:scale(1.08);
 }
 
+.dropZone {
+  border: 2px dashed #aaa;
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 20px;
+  cursor: pointer;
+}
