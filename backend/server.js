@@ -29,7 +29,9 @@ app.post("/extract", upload.single("image"), async (req, res) => {
 
     const hexColors = colors.map(c => c.hex());
 
-    fs.unlinkSync(req.file.path);
+    fs.unlink(req.file.path, (err) => {
+      if (err) console.error("Delete error:", err);
+    });
 
     res.json({ colors: hexColors });
 

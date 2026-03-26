@@ -7,8 +7,18 @@ function App() {
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
   const [colors, setColors] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const paletteRef = useRef();
+
+  const getTextColor = (bg) => {
+    const color = bg.substring(1);
+    const r = parseInt(color.substr(0, 2), 16);
+    const g = parseInt(color.substr(2, 2), 16);
+    const b = parseInt(color.substr(4, 2), 16);
+
+    return (r * 0.299 + g * 0.587 + b * 0.114) > 186 ? "#000" : "#fff";
+  };
 
   const handleImage = (e) => {
     const file = e.target.files[0];
@@ -29,13 +39,30 @@ function App() {
     const formData = new FormData();
     formData.append("image", image);
 
-    const res = await fetch("http://localhost:5000/extract", {
-      method: "POST",
-      body: formData
-    });
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-    const data = await res.json();
-    setColors(data.colors);
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/extract`, {
+        method: "POST",
+        body: formData
+      });
+
+      if (!res.ok) {
+        throw new Error("Server error");
+      }
+
+      const data = await res.json();
+      setColors(data.colors);
+
+    } catch (error) {
+      console.error("Error:", error);
+      alert("❌ Failed to extract colors. Please try again.");
+    }
+
+    finally {
+      setLoading(false);
+    }
   };
 
   const downloadPalette = async () => {
@@ -57,7 +84,9 @@ function App() {
       <input type="file" accept="image/*" onChange={handleImage} />
 
       <div className="buttons">
-        <button onClick={uploadImage}>Extract Colors</button>
+        <button onClick={uploadImage} disabled={loading}>
+          {loading ? "Extracting..." : "Extract Colors"}
+          </button>
 
         {colors.length > 0 && (
           <button onClick={downloadPalette}>
@@ -79,8 +108,14 @@ function App() {
           <div
             key={index}
             className="colorBox"
-            style={{ background: color }}
-            onClick={() => navigator.clipboard.writeText(color)}
+            style={{ 
+              background: color,
+              color: getTextColor(color)
+            }}
+            onClick={() => {
+              navigator.clipboard.writeText(color);
+              alert("Copied " + color);
+            }}
           >
             {color}
           </div>
