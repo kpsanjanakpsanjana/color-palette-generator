@@ -15,14 +15,27 @@ function App() {
 
   const paletteRef = useRef();
 
-  const getTextColor = (bg) => {
-    const color = bg.substring(1);
-    const r = parseInt(color.substr(0, 2), 16);
-    const g = parseInt(color.substr(2, 2), 16);
-    const b = parseInt(color.substr(4, 2), 16);
+  useEffect(() => {
+    const data = JSON.parse(localStorage.getItem("palettes")) || [];
+    setSavedPalettes(data);
+  }, []);
 
-    return (r * 0.299 + g * 0.587 + b * 0.114) > 186 ? "#000" : "#fff";
-  };
+const getTextColor = (bg) => {
+  const color = bg.substring(1);
+  const r = parseInt(color.substr(0, 2), 16);
+  const g = parseInt(color.substr(2, 2), 16);
+  const b = parseInt(color.substr(4, 2), 16);
+
+  return (r * 0.299 + g * 0.587 + b * 0.114) > 186 ? "#000" : "#fff";
+};
+
+const hexToRGB = (hex) => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+
+  return `rgb(${r}, ${g}, ${b})`;
+};
 
   const handleImage = (e) => {
     const file = e.target.files[0];
@@ -95,10 +108,42 @@ const handleDragOver = (e) => {
     link.click();
   };
 
+  const savePalette = () => {
+  if (!paletteName) {
+    alert("Enter palette name");
+    return;
+  }
+
+  const newPalette = {
+    name: paletteName,
+    colors: colors
+  };
+
+  // get old palettes
+  const existing = JSON.parse(localStorage.getItem("palettes")) || [];
+
+  // save new palette
+  const updated = [...existing, newPalette];
+  localStorage.setItem("palettes", JSON.stringify(updated));
+
+  // update UI
+  setSavedPalettes(updated);
+
+  // clear input
+  setPaletteName("");
+};
+
   return (
     <div className="container">
 
       <h1>🎨 Color Palette Generator</h1>
+
+      <input
+      type="text"
+      placeholder="Enter palette name"
+      value={paletteName}
+      onChange={(e) => setPaletteName(e.target.value)}
+      />
 
       <div
       className="dropZone"
@@ -125,6 +170,10 @@ const handleDragOver = (e) => {
             Download Palette
           </button>
         )}
+
+        <button onClick={savePalette}>
+          Save Palette
+          </button>
       </div>
 
       {preview && (
@@ -149,11 +198,33 @@ const handleDragOver = (e) => {
               alert("Copied " + color);
             }}
           >
-            {color}
+            <div>{color}</div>
+            <div>{hexToRGB(color)}</div>
+
           </div>
         ))}
 
       </div>
+
+      <h3>Saved Palettes</h3>
+
+      {savedPalettes.map((p, i) => (
+        <div key={i}>
+          <h4>{p.name}</h4>
+          <div style={{ display: "flex" }}>
+            {p.colors.map((c, j) => (
+              <div
+              key={j}
+              style={{
+                background: c,
+                width: "40px",
+                height: "40px"
+              }}
+              />
+            ))}
+            </div>
+            </div>
+      ))}
 
     </div>
   );

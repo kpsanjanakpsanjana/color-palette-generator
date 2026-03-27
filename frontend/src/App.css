@@ -76,3 +76,9 @@ button:hover{
   margin-bottom: 20px;
   cursor: pointer;
 }
+
+input[type="text"] {
+  padding: 10px;
+  margin: 10px 0;
+  width: 250px;
+}
