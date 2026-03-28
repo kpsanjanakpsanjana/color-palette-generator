@@ -22,32 +22,46 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({
+  storage: storage,
 
-app.post("/extract", upload.single("image"), async (req, res) => {
-  try {
+  fileFilter: (req, file, cb) => {
+    // ✅ Check if file is image
+    if (file.mimetype.startsWith("image/")) {
+      cb(null, true); // allow file
+    } else {
+      cb(new Error("Only image files are allowed"), false); // reject file
+    }
+  }
+});
 
-    console.log("Image received:", req.file.filename);
+app.post("/extract", (req, res) => {
 
-    const count = parseInt(req.body.count) || 5;
-    const colors = await getColors(req.file.path, {
-      count: count
+  upload.single("image")(req, res, async (err) => {
+
+    if (err) {
+      return res.status(400).json({ error: err.message });
+    }
+
+    try {
+      const count = parseInt(req.body.count) || 5;
+
+      const colors = await getColors(req.file.path, {
+        count: count
       });
 
-    const hexColors = colors.map(c => c.hex());
+      const hexColors = colors.map(c => c.hex());
 
-    fs.unlink(req.file.path, (err) => {
-      if (err) console.error("Delete error:", err);
-    });
+      fs.unlink(req.file.path, () => {});
 
-    res.json({ colors: hexColors });
+      res.json({ colors: hexColors });
 
-  } catch (error) {
+    } catch (error) {
+      res.status(500).json({ error: "Color extraction failed" });
+    }
 
-    console.error(error);
-    res.status(500).json({ error: "Color extraction failed" });
+  });
 
-  }
 });
 
 app.listen(5000, () => {
