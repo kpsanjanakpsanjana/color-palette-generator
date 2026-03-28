@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import "./App.css";
 import html2canvas from "html2canvas";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
 
@@ -12,6 +14,7 @@ function App() {
   const [count, setCount] = useState(5);
   const [paletteName, setPaletteName] = useState("");
   const [savedPalettes, setSavedPalettes] = useState([]);
+  const [darkMode, setDarkMode] = useState(false);
 
   const paletteRef = useRef();
 
@@ -64,12 +67,13 @@ const handleDragOver = (e) => {
   const uploadImage = async () => {
 
     if (!image) {
-      alert("Please select an image first");
+      toast.error("Please select an image first");
       return;
     }
 
     const formData = new FormData();
     formData.append("image", image);
+    formData.append("count", count);
 
     const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -89,7 +93,7 @@ const handleDragOver = (e) => {
 
     } catch (error) {
       console.error("Error:", error);
-      alert("❌ Failed to extract colors. Please try again.");
+      toast.error("Failed to extract colors. Please try again.");
     }
 
     finally {
@@ -108,11 +112,22 @@ const handleDragOver = (e) => {
     link.click();
   };
 
+  const deletePalette = (index) => {
+  // remove selected palette
+  const updated = savedPalettes.filter((_, i) => i !== index);
+
+  // update localStorage
+  localStorage.setItem("palettes", JSON.stringify(updated));
+
+  // update UI
+  setSavedPalettes(updated);
+};
+
   const savePalette = () => {
-  if (!paletteName) {
-    alert("Enter palette name");
-    return;
-  }
+  if (!paletteName || colors.length === 0) {
+  toast.warning("Enter palette name");
+  return;
+}
 
   const newPalette = {
     name: paletteName,
@@ -131,18 +146,31 @@ const handleDragOver = (e) => {
 
   // clear input
   setPaletteName("");
+  toast.success("Palette saved!");
 };
 
   return (
-    <div className="container">
+    <div className={darkMode ? "container dark" : "container"}>
 
       <h1>🎨 Color Palette Generator</h1>
+
+      <button onClick={() => setDarkMode(!darkMode)}>
+        {darkMode ? "☀ Light Mode" : "🌙 Dark Mode"}
+        </button>
+  
 
       <input
       type="text"
       placeholder="Enter palette name"
       value={paletteName}
       onChange={(e) => setPaletteName(e.target.value)}
+      />
+
+      <input
+      type="number"
+      value={count}
+      onChange={(e) => setCount(Number(e.target.value))}
+      placeholder="Number of colors"
       />
 
       <div
@@ -176,6 +204,8 @@ const handleDragOver = (e) => {
           </button>
       </div>
 
+      {loading && <div className="loader"></div>}
+
       {preview && (
         <div className="preview">
           <h3>Image Preview</h3>
@@ -195,7 +225,27 @@ const handleDragOver = (e) => {
             }}
             onClick={() => {
               navigator.clipboard.writeText(color);
-              alert("Copied " + color);
+
+              toast.success(
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  {/* 🎨 Color Preview Box */}
+                  <div style={{
+                    width: "20px",
+                    height: "20px",
+                    background: color,
+                    borderRadius: "4px",
+                    border: "1px solid rgba(255,255,255,0.5)"
+                    }}></div>
+
+                    {/* Text */}
+                    <div>
+                      <div><b>{color}</b></div>
+                      <div style={{ fontSize: "12px" }}>Copied to clipboard</div>
+                      </div>
+
+                      </div>
+              );
+
             }}
           >
             <div>{color}</div>
@@ -208,23 +258,32 @@ const handleDragOver = (e) => {
 
       <h3>Saved Palettes</h3>
 
-      {savedPalettes.map((p, i) => (
-        <div key={i}>
-          <h4>{p.name}</h4>
-          <div style={{ display: "flex" }}>
-            {p.colors.map((c, j) => (
-              <div
-              key={j}
-              style={{
-                background: c,
-                width: "40px",
-                height: "40px"
-              }}
-              />
-            ))}
-            </div>
-            </div>
+{savedPalettes.map((p, i) => (
+  <div key={i} style={{ marginBottom: "20px" }}>
+    
+    <h4>{p.name}</h4>
+
+    <button onClick={() => deletePalette(i)}>
+      Delete
+    </button>
+
+    <div style={{ display: "flex" }}>
+      {p.colors.map((c, j) => (
+        <div
+          key={j}
+          style={{
+            background: c,
+            width: "40px",
+            height: "40px"
+          }}
+        />
       ))}
+    </div>
+
+  </div>
+))}
+
+<ToastContainer position="top-right" autoClose={2000} />
 
     </div>
   );

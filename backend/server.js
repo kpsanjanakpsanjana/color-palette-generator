@@ -8,6 +8,10 @@ const path = require("path");
 const app = express();
 app.use(cors());
 
+if (!fs.existsSync("uploads")) {
+  fs.mkdirSync("uploads");
+}
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "uploads/");
@@ -25,7 +29,10 @@ app.post("/extract", upload.single("image"), async (req, res) => {
 
     console.log("Image received:", req.file.filename);
 
-    const colors = await getColors(req.file.path);
+    const count = parseInt(req.body.count) || 5;
+    const colors = await getColors(req.file.path, {
+      count: count
+      });
 
     const hexColors = colors.map(c => c.hex());
 
