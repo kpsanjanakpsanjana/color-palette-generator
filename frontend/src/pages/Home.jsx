@@ -84,9 +84,6 @@ const handleDragOver = (e) => {
     formData.append("image", image);
     formData.append("count", Number(count) || 5);
 
-
-    const API_URL = "http://localhost:5000";
-
     try {
       setLoading(true);
       const res = await fetch("https://color-palette-generator-tfok.onrender.com/extract", {
