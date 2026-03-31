@@ -6,7 +6,13 @@ const fs = require("fs");
 const path = require("path");
 
 const app = express();
-app.use(cors());
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"]
+  })
+);
 
 if (!fs.existsSync("uploads")) {
   fs.mkdirSync("uploads");
