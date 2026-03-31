@@ -24,7 +24,7 @@ function Home() {
   const paletteRef = useRef();
 
   useEffect(() => {
-  localStorage.removeItem("palettes"); // clear old data
+  localStorage.removeItem("palettes"); 
   setSavedPalettes([]);
 }, []);
 
@@ -82,17 +82,17 @@ const handleDragOver = (e) => {
 
     const formData = new FormData();
     formData.append("image", image);
-    formData.append("count", count);
+    formData.append("count", Number(count) || 5);
+
 
     const API_URL = "http://localhost:5000";
 
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/extract`, {
-        method: "POST",
-        body: formData
-      });
-
+      const res = await fetch("https://color-palette-generator-tfok.onrender.com", {
+  method: "POST",
+  body: formData
+});
       if (!res.ok) {
         throw new Error("Server error");
       }
@@ -128,13 +128,11 @@ const handleDragOver = (e) => {
   };
 
   const deletePalette = (index) => {
-  // remove selected palette
+ 
   const updated = savedPalettes.filter((_, i) => i !== index);
 
-  // update localStorage
   localStorage.setItem("palettes", JSON.stringify(updated));
 
-  // update UI
   setSavedPalettes(updated);
 };
 
@@ -149,17 +147,13 @@ const handleDragOver = (e) => {
     colors: colors
   };
 
-  // get old palettes
   const existing = JSON.parse(localStorage.getItem("palettes")) || [];
 
-  // save new palette
   const updated = [...existing, newPalette];
   localStorage.setItem("palettes", JSON.stringify(updated));
 
-  // update UI
   setSavedPalettes(updated);
 
-  // clear input
   setPaletteName("");
   toast.success("Palette saved!");
 };
@@ -214,7 +208,6 @@ const handleLogout = () => {
   onChange={(e) => {
     let value = e.target.value;
 
-    // allow empty input while typing
     if (value === "") {
       setCount("");
       return;
@@ -222,7 +215,6 @@ const handleLogout = () => {
 
     value = Number(value);
 
-    // restrict between 1 and 20
     if (value < 1) value = 1;
     if (value > 20) value = 20;
 
