@@ -26,11 +26,11 @@ const upload = multer({
   storage: storage,
 
   fileFilter: (req, file, cb) => {
-    // ✅ Check if file is image
+    
     if (file.mimetype.startsWith("image/")) {
-      cb(null, true); // allow file
+      cb(null, true); 
     } else {
-      cb(new Error("Only image files are allowed"), false); // reject file
+      cb(new Error("Only image files are allowed"), false); 
     }
   }
 });
@@ -47,10 +47,12 @@ app.post("/extract", (req, res) => {
       const count = parseInt(req.body.count) || 5;
 
       const colors = await getColors(req.file.path, {
-        count: count
-      });
+        count: count + 5
+        });
 
-      const hexColors = colors.map(c => c.hex());
+      const hexColors = colors
+      .slice(0, count)
+      .map(c => c.hex());
 
       fs.unlink(req.file.path, () => {});
 
@@ -64,6 +66,8 @@ app.post("/extract", (req, res) => {
 
 });
 
-app.listen(5000, () => {
-  console.log("Server running on port 5000");
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
