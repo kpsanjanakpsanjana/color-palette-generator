@@ -89,7 +89,7 @@ const handleDragOver = (e) => {
 
     try {
       setLoading(true);
-      const res = await fetch("https://color-palette-generator-tfok.onrender.com", {
+      const res = await fetch("https://color-pallate-generator-tfok.onrender.com/extract", {
   method: "POST",
   body: formData
 });
