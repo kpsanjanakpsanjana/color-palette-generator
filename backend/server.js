@@ -6,16 +6,12 @@ const fs = require("fs");
 const path = require("path");
 
 const app = express();
-app.use(
-  cors({
-    origin: "*",
-    methods: ["GET", "POST"],
-    allowedHeaders: ["Content-Type"]
-  })
-);
+app.use(cors({ origin: "*" }));
 
-if (!fs.existsSync("uploads")) {
-  fs.mkdirSync("uploads");
+const uploadPath = path.join(__dirname, "uploads");
+
+if (!fs.existsSync(uploadPath)) {
+  fs.mkdirSync(uploadPath);
 }
 
 const storage = multer.diskStorage({
@@ -74,8 +70,10 @@ app.post("/extract", (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
 app.get("/", (req, res) => {
   res.send("Backend is working 🚀");
 });
-
-module.exports = app;
